@@ -19,23 +19,35 @@ resource "google_compute_network" "mev_gcs_network" {
   name = "webmev-${terraform.workspace}-gcs-network"
 }
 
-resource "google_compute_firewall" "gcs_firewall" {
-  name    = "webmev-${terraform.workspace}-gcs-firewall"
+resource "google_compute_firewall" "gcs_inbound_firewall" {
+  name    = "webmev-${terraform.workspace}-gcs-inbound-firewall"
   network = google_compute_network.mev_gcs_network.name
 
   allow {
     protocol = "tcp"
     ports    = ["22", "443", "50000-51000"]
   }
-  
-  target_tags = ["gcs-ports"]
+  direction = "INGRESS"
+  target_tags = ["gcs-inbound"]
+}
+
+resource "google_compute_firewall" "gcs_outbound_firewall" {
+  name    = "webmev-${terraform.workspace}-gcs-egress-firewall"
+  network = google_compute_network.mev_gcs_network.name
+
+  allow {
+    protocol = "tcp"
+    ports    = ["443", "50000-51000"]
+  }
+  direction = "EGRESS"
+  target_tags = ["gcs-outbound"]
 }
 
 
 resource "google_compute_instance" "webmev_gcs" {
   name                    = "webmev-${terraform.workspace}-gcs"
   machine_type            = var.gcp_machine_type
-  tags                    = ["gcs-ports"]
+  tags                    = ["gcs-inbound", "gcs-outbound"]
 
   metadata_startup_script = templatefile("provision.sh",
     {
