@@ -17,3 +17,12 @@ variable "volume_type" {
   description = "Type of EBS volume"
   default = "gp3"
 }
+
+variable "availability_zone" {
+  description = "The AWS availability zone"
+  default = "us-east-1b"
+}
+
+variable "key_pair_name" {
+  description = "Key pair to use when connecting to the EC2 instance"
+}
